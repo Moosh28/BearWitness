@@ -82,7 +82,30 @@
     font-size: clamp(18px, 4vw, 24px);
     color: var(--muted);
     max-width: 440px;
+    margin-bottom: 28px;
+  }
+  .siege-counter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     margin-bottom: 44px;
+    gap: 6px;
+  }
+  .siege-days {
+    font-family: var(--display);
+    font-size: clamp(52px, 14vw, 96px);
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .siege-label {
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 600;
+    opacity: 0.8;
   }
   .scroll-hint {
     position: absolute;
@@ -499,6 +522,10 @@
     <p class="eyebrow">A Personal Fundraiser for Gaza</p>
     <h1>Bear Witness<span class="arabic">اشهد</span></h1>
     <p class="tag">Say their names. Do your part. Stand on the right side of the day you will be asked.</p>
+    <div class="siege-counter">
+      <span class="siege-days" id="siegeDays">0</span>
+      <span class="siege-label">days of siege</span>
+    </div>
     <a href="#children" class="btn">See who you are giving for</a>
     <span class="scroll-hint">Scroll</span>
   </header>
@@ -618,6 +645,14 @@
 
 <script>
   var LAUNCHGOOD = "https://www.launchgood.com/v4/campaign/every_meal_doubled_feed_gazas_children_this_month";
+
+  // ---- SIEGE COUNTER ----
+  (function() {
+    var start = new Date('2023-10-07T00:00:00Z');
+    var now = new Date();
+    var days = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+    document.getElementById('siegeDays').textContent = days.toLocaleString();
+  })();
 
   // ---- CHILDREN DATA (all verified) ----
   var children = [

@@ -40,6 +40,86 @@
 
   .wrap { max-width: 680px; margin: 0 auto; padding: 0 24px; }
 
+  /* NAVIGATION */
+  .nav-bar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: rgba(10,18,12,0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-brand { font-family: var(--display); font-size: 15px; font-weight: 600; color: var(--text); text-decoration: none; }
+  .nav-trigger {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    border: 1px solid var(--gold);
+    background: var(--gold-soft);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-family: var(--arabic); font-size: 17px; color: var(--gold);
+    transition: background 0.2s;
+  }
+  .nav-trigger:hover { background: rgba(201,168,76,0.22); }
+  .nav-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 200; opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .nav-overlay.open { opacity: 1; pointer-events: auto; }
+  .nav-panel {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: 260px;
+    background: var(--bg-deep);
+    border-left: 1px solid var(--border);
+    z-index: 300;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+    display: flex; flex-direction: column;
+    padding: 28px 0;
+  }
+  .nav-panel.open { transform: translateX(0); }
+  .nav-panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .nav-panel-title { font-family: var(--arabic); font-size: 28px; color: var(--gold); }
+  .nav-close {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--muted); font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--body); transition: border-color 0.15s, color 0.15s;
+  }
+  .nav-close:hover { border-color: var(--gold); color: var(--gold); }
+  .nav-items { display: flex; flex-direction: column; padding: 8px 0; flex: 1; }
+  .nav-item {
+    display: block; padding: 16px 24px;
+    font-family: var(--display); font-size: 18px; font-weight: 600;
+    color: var(--text); text-decoration: none;
+    border-bottom: 1px solid rgba(42,61,46,0.5);
+    transition: color 0.15s, padding-left 0.15s;
+    cursor: pointer; background: transparent;
+    border-left: none; border-right: none; border-top: none;
+    text-align: left; width: 100%;
+  }
+  .nav-item:hover { color: var(--gold); padding-left: 28px; }
+  .nav-item.donate { color: var(--gold); }
+  .nav-item.donate:hover { color: var(--text); }
+  .nav-footer {
+    padding: 20px 24px 0;
+    font-size: 11px; color: var(--faint); letter-spacing: 0.08em;
+    border-top: 1px solid var(--border); margin-top: 8px;
+  }
+
   /* HERO */
   .hero {
     min-height: 92vh;
@@ -49,7 +129,7 @@
     justify-content: center;
     text-align: center;
     position: relative;
-    padding: 60px 24px;
+    padding: 130px 24px 60px;
   }
   .hero .eyebrow {
     font-size: 12px;
@@ -605,8 +685,32 @@
 </head>
 <body>
 
+  <!-- NAVIGATION -->
+  <nav class="nav-bar">
+    <a href="#hero" class="nav-brand">Bear Witness</a>
+    <button class="nav-trigger" id="navTrigger" aria-label="Open menu">اشهد</button>
+  </nav>
+
+  <div class="nav-overlay" id="navOverlay"></div>
+
+  <div class="nav-panel" id="navPanel">
+    <div class="nav-panel-head">
+      <span class="nav-panel-title">اشهد</span>
+      <button class="nav-close" id="navClose">✕</button>
+    </div>
+    <div class="nav-items">
+      <button class="nav-item" onclick="navTo('children')">Their Names</button>
+      <button class="nav-item" onclick="navTo('intro')">Why This Exists</button>
+      <button class="nav-item" onclick="navTo('timeline')">The Record</button>
+      <button class="nav-item" onclick="navTo('donors')">Those Who Gave</button>
+      <button class="nav-item" onclick="navTo('witness')">Bear Witness</button>
+      <button class="nav-item donate" onclick="navTo('give')">Donate</button>
+    </div>
+    <div class="nav-footer">bearwitness.pages.dev</div>
+  </div>
+
   <!-- HERO -->
-  <header class="hero">
+  <header class="hero" id="hero">
     <p class="eyebrow">A Personal Fundraiser for Gaza</p>
     <h1>Bear Witness<span class="arabic">اشهد</span></h1>
     <p class="tag">Say their names. Do your part. Stand on the right side of the day you will be asked.</p>
@@ -632,7 +736,7 @@
   </section>
 
   <!-- INTRO -->
-  <section class="intro">
+  <section class="intro" id="intro">
     <div class="wrap intro-body">
       <p class="label" style="text-align:left">Why this exists</p>
       <p class="lead">My name is Noor. I'm 18 years old, from the UK.</p>
@@ -992,7 +1096,38 @@
     });
   }
 
-  // ---- SHARE ----
+  // ---- NAVIGATION ----
+  var navTrigger = document.getElementById('navTrigger');
+  var navPanel = document.getElementById('navPanel');
+  var navOverlay = document.getElementById('navOverlay');
+  var navClose = document.getElementById('navClose');
+
+  function openNav() {
+    navPanel.classList.add('open');
+    navOverlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeNav() {
+    navPanel.classList.remove('open');
+    navOverlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  function navTo(id) {
+    closeNav();
+    setTimeout(function() {
+      var el = document.getElementById(id);
+      if (el) {
+        var offset = el.getBoundingClientRect().top + window.scrollY - 70;
+        window.scrollTo({ top: offset, behavior: 'smooth' });
+      }
+    }, 300);
+  }
+
+  navTrigger.addEventListener('click', openNav);
+  navClose.addEventListener('click', closeNav);
+  navOverlay.addEventListener('click', closeNav);
+
+
   document.getElementById('shareBtn').addEventListener('click', function() {
     var shareData = {
       title: 'Bear Witness',

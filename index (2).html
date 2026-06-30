@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bear Witness</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter:wght@400;500;600&family=Amiri&display=swap');
+
+  :root {
+    --bg: #0F1A12;
+    --bg-deep: #0A120C;
+    --card: #1A2B1E;
+    --card-soft: #223328;
+    --text: #E8E4DB;
+    --muted: #9CA89E;
+    --faint: #5E6E62;
+    --gold: #C9A84C;
+    --gold-soft: rgba(201, 168, 76, 0.12);
+    --border: #2A3D2E;
+    --display: 'Fraunces', Georgia, serif;
+    --body: 'Inter', system-ui, sans-serif;
+    --arabic: 'Amiri', serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  ::selection { background: var(--gold); color: var(--bg-deep); }
+
+  .wrap { max-width: 680px; margin: 0 auto; padding: 0 24px; }
+
+  /* PROGRESS BAR */
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 2px;
+    background: var(--gold);
+    z-index: 200;
+    width: 0%;
+    transition: width 0.1s linear;
+  }
+
+  /* BACK TO TOP */
+  .back-top {
+    position: fixed;
+    bottom: 28px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: var(--bg-deep);
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    font-family: var(--body);
+  }
+  .back-top.visible { opacity: 1; pointer-events: auto; }
+  .back-top:hover { transform: translateY(-2px); }
+
+  /* NAVIGATION */
+  .nav-bar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: rgba(10,18,12,0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-brand { font-family: var(--display); font-size: 15px; font-weight: 600; color: var(--text); text-decoration: none; }
+  .nav-trigger {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    border: 1px solid var(--gold);
+    background: var(--gold-soft);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-family: var(--arabic); font-size: 17px; color: var(--gold);
+    transition: background 0.2s;
+  }
+  .nav-trigger:hover { background: rgba(201,168,76,0.22); }
+  .nav-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 200; opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .nav-overlay.open { opacity: 1; pointer-events: auto; }
+  .nav-panel {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: 260px;
+    background: var(--bg-deep);
+    border-left: 1px solid var(--border);
+    z-index: 300;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+    display: flex; flex-direction: column;
+    padding: 28px 0;
+  }
+  .nav-panel.open { transform: translateX(0); }
+  .nav-panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .nav-panel-title { font-family: var(--arabic); font-size: 28px; color: var(--gold); }
+  .nav-close {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--muted); font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--body); transition: border-color 0.15s, color 0.15s;
+  }
+  .nav-close:hover { border-color: var(--gold); color: var(--gold); }
+  .nav-items { display: flex; flex-direction: column; padding: 8px 0; flex: 1; }
+  .nav-item {
+    display: block; padding: 16px 24px;
+    font-family: var(--display); font-size: 18px; font-weight: 600;
+    color: var(--text); text-decoration: none;
+    border-bottom: 1px solid rgba(42,61,46,0.5);
+    transition: color 0.15s, padding-left 0.15s;
+    cursor: pointer; background: transparent;
+    border-left: none; border-right: none; border-top: none;
+    text-align: left; width: 100%;
+  }
+  .nav-item:hover { color: var(--gold); padding-left: 28px; }
+  .nav-item.donate { color: var(--gold); }
+  .nav-item.donate:hover { color: var(--text); }
+  .nav-footer {
+    padding: 20px 24px 0;
+    font-size: 11px; color: var(--faint); letter-spacing: 0.08em;
+    border-top: 1px solid var(--border); margin-top: 8px;
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    padding: 130px 24px 60px;
+  }
+  .hero .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 600;
+    margin-bottom: 28px;
+  }
+  .hero h1 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(56px, 16vw, 130px);
+    line-height: 0.92;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+  }
+  .hero h1 .arabic {
+    display: block;
+    font-family: var(--arabic);
+    font-size: clamp(28px, 7vw, 54px);
+    color: var(--gold);
+    font-weight: 400;
+    margin-top: 16px;
+    letter-spacing: 0;
+  }
+  .hero .tag {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: clamp(18px, 4vw, 24px);
+    color: var(--muted);
+    max-width: 440px;
+    margin-bottom: 28px;
+  }
+  .siege-counter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 44px;
+    gap: 6px;
+  }
+  .siege-days {
+    font-family: var(--display);
+    font-size: clamp(52px, 14vw, 96px);
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .siege-label {
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 600;
+    opacity: 0.8;
+  }
+  .scroll-hint {
+    position: absolute;
+    bottom: 32px;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--faint);
+    animation: bob 2.4s ease-in-out infinite;
+  }
+  @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+
+  .btn {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--bg-deep);
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 17px;
+    padding: 16px 36px;
+    border-radius: 2px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(201,168,76,0.25); }
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+  }
+  .btn-ghost:hover { background: var(--gold-soft); box-shadow: none; }
+
+  /* SECTION SHELL */
+  section { padding: 80px 0; }
+  .label {
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 600;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .section-title {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(30px, 6vw, 44px);
+    text-align: center;
+    line-height: 1.1;
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+  }
+  .section-sub {
+    text-align: center;
+    color: var(--muted);
+    max-width: 460px;
+    margin: 0 auto 48px;
+    font-size: 16px;
+  }
+
+  /* CHILDREN ROTATOR */
+  .rotator {
+    position: relative;
+    min-height: 440px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .child-card {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.9s ease, transform 0.9s ease;
+    pointer-events: none;
+  }
+  .child-card.active { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .child-portrait {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 28px;
+    border: 1px solid var(--border);
+    position: relative;
+  }
+  .child-portrait .pulse {
+    position: absolute;
+    inset: -1px;
+    border-radius: 50%;
+    border: 1px solid var(--gold);
+    animation: pulse 2.8s ease-out infinite;
+    opacity: 0;
+  }
+  @keyframes pulse {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(1.35); opacity: 0; }
+  }
+  .child-portrait .ar {
+    font-family: var(--arabic);
+    font-size: 38px;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .child-name {
+    font-family: var(--display);
+    font-size: 34px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .child-age {
+    font-size: 13px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 20px;
+  }
+  .child-fact {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 19px;
+    line-height: 1.55;
+    color: var(--text);
+    max-width: 480px;
+    margin-bottom: 16px;
+  }
+  .child-alive {
+    display: inline-block;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--bg-deep);
+    background: var(--gold);
+    padding: 4px 12px;
+    border-radius: 2px;
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+  .child-source {
+    font-size: 12px;
+    color: var(--faint);
+    margin-bottom: 28px;
+    max-width: 420px;
+  }
+  .rotator-controls {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 36px;
+  }
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.3s, transform 0.3s;
+  }
+  .dot.active { background: var(--gold); transform: scale(1.3); }
+
+  /* INTRO */
+  .intro { background: var(--bg-deep); }
+  .intro-body p {
+    font-size: 17px;
+    line-height: 1.85;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+  .intro-body p.lead {
+    font-family: var(--display);
+    font-size: 22px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .intro-body strong { color: var(--text); font-weight: 600; }
+  .hadith {
+    border-left: 2px solid var(--gold);
+    padding: 8px 0 8px 24px;
+    margin: 32px 0;
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 19px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .hadith cite {
+    display: block;
+    font-style: normal;
+    font-family: var(--body);
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-top: 12px;
+  }
+  .signature {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 18px;
+    color: var(--gold);
+    margin-top: 28px;
+  }
+  .closing-lines {
+    font-family: var(--display);
+    font-size: 21px;
+    color: var(--text);
+    line-height: 1.7;
+    margin: 28px 0;
+  }
+
+  /* CALCULATOR */
+  .calc {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 40px 32px;
+  }
+  .calc-amount {
+    font-family: var(--display);
+    font-size: 60px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1;
+  }
+  .calc-doubled {
+    text-align: center;
+    color: var(--gold);
+    font-weight: 600;
+    font-size: 15px;
+    margin: 8px 0 28px;
+    min-height: 20px;
+  }
+  input[type=range] {
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    appearance: none;
+    -webkit-appearance: none;
+    background: var(--border);
+    outline: none;
+    margin-bottom: 24px;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--gold);
+    cursor: pointer;
+    border: 3px solid var(--bg);
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--gold);
+    cursor: pointer;
+    border: 3px solid var(--bg);
+  }
+  .presets { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 28px; }
+  .preset {
+    padding: 8px 18px;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: var(--body);
+    transition: all 0.15s;
+  }
+  .preset.active { border-color: var(--gold); background: var(--gold-soft); color: var(--gold); }
+  .impact-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 18px;
+    background: var(--card-soft);
+    border-left: 2px solid var(--gold);
+    border-radius: 2px;
+    margin-bottom: 10px;
+    font-size: 15px;
+  }
+  .impact-line .em { font-size: 20px; flex-shrink: 0; line-height: 1.3; }
+  .calc .btn { width: 100%; text-align: center; margin-top: 20px; }
+  .calc .fine {
+    text-align: center;
+    font-size: 12px;
+    color: var(--faint);
+    margin-top: 12px;
+  }
+
+  /* TIMELINE */
+  .timeline { position: relative; padding-left: 28px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 4px; top: 8px; bottom: 8px;
+    width: 1px;
+    background: var(--border);
+  }
+  .tl-item { position: relative; margin-bottom: 36px; }
+  .tl-item::before {
+    content: '';
+    position: absolute;
+    left: -28px; top: 6px;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 0 4px var(--bg);
+  }
+  .tl-date {
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .tl-text { font-size: 16px; color: var(--text); line-height: 1.6; margin-bottom: 4px; }
+  .tl-source { font-size: 12px; color: var(--faint); }
+
+  /* WITNESS WALL */
+  .wall { background: var(--bg-deep); }
+  .wform {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 32px 28px;
+    margin-bottom: 36px;
+  }
+  .field { margin-bottom: 18px; }
+  .field label {
+    display: block;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .field input[type=text], .field textarea, .field select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 15px;
+    resize: vertical;
+  }
+  .field input:focus, .field textarea:focus, .field select:focus {
+    outline: none;
+    border-color: var(--gold);
+  }
+  .anon-row { display: flex; align-items: center; gap: 10px; }
+  .anon-row input { width: auto; }
+  .anon-row label { margin: 0; text-transform: none; letter-spacing: 0; font-size: 14px; color: var(--text); }
+  .wall-grid { display: flex; flex-direction: column; gap: 12px; }
+  .witness {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--gold);
+    border-radius: 2px;
+    padding: 16px 20px;
+    animation: fadeIn 0.5s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .witness .w-head { font-weight: 600; font-size: 15px; }
+  .witness .w-for { color: var(--gold); font-size: 13px; }
+  .witness .w-msg { color: var(--muted); font-size: 14px; margin-top: 6px; font-style: italic; }
+  .wall-empty { text-align: center; color: var(--faint); font-style: italic; padding: 20px; }
+
+  /* DONOR WALL */
+  .donors { background: var(--bg); }
+  .donor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .donor-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .donor-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--gold-soft);
+    border: 1px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gold);
+    flex-shrink: 0;
+  }
+  .donor-info .donor-name { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.3; }
+  .donor-info .donor-loc { font-size: 12px; color: var(--muted); }
+  .donor-total {
+    text-align: center;
+    padding: 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--gold);
+    border-radius: 4px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .donor-total strong { color: var(--gold); font-size: 18px; }
+
+  /* DEATH COUNTER */
+  .deaths { background: var(--bg-deep); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .death-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 48px 24px;
+  }
+  .death-label-top {
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .death-number {
+    font-family: var(--display);
+    font-size: clamp(52px, 14vw, 96px);
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    margin-bottom: 8px;
+  }
+  .death-number span { color: var(--gold); }
+  .death-sub {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: clamp(16px, 3vw, 20px);
+    color: var(--muted);
+    max-width: 440px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .death-source {
+    font-size: 11px;
+    color: var(--faint);
+    letter-spacing: 0.06em;
+  }
+
+  /* FINAL CTA */
+  .final { text-align: center; }
+  .final .quote {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: clamp(22px, 5vw, 30px);
+    line-height: 1.5;
+    max-width: 540px;
+    margin: 0 auto 36px;
+  }
+  .final .cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 36px 24px;
+    text-align: center;
+  }
+  footer p { font-size: 12px; color: var(--faint); max-width: 480px; margin: 0 auto; line-height: 1.6; }
+
+  @media (max-width: 520px) {
+    .child-fact { font-size: 17px; }
+    .calc { padding: 28px 20px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- PROGRESS BAR -->
+  <div class="progress-bar" id="progressBar"></div>
+
+  <!-- BACK TO TOP -->
+  <button class="back-top" id="backTop" aria-label="Back to top">↑</button>
+
+  <!-- NAVIGATION -->
+  <nav class="nav-bar">
+    <a href="#hero" class="nav-brand">Bear Witness</a>
+    <button class="nav-trigger" id="navTrigger" aria-label="Open menu">اشهد</button>
+  </nav>
+
+  <div class="nav-overlay" id="navOverlay"></div>
+
+  <div class="nav-panel" id="navPanel">
+    <div class="nav-panel-head">
+      <span class="nav-panel-title">اشهد</span>
+      <button class="nav-close" id="navClose">✕</button>
+    </div>
+    <div class="nav-items">
+      <button class="nav-item" onclick="navTo('children')">Their Names</button>
+      <button class="nav-item" onclick="navTo('intro')">Why This Exists</button>
+      <button class="nav-item" onclick="navTo('timeline')">The Record</button>
+      <button class="nav-item" onclick="navTo('donors')">Those Who Gave</button>
+      <button class="nav-item" onclick="navTo('witness')">Bear Witness</button>
+      <button class="nav-item donate" onclick="navTo('give')">Donate</button>
+    </div>
+    <div class="nav-footer">bearwitness.pages.dev</div>
+  </div>
+
+  <!-- HERO -->
+  <header class="hero" id="hero">
+    <p class="eyebrow">A Personal Fundraiser for Gaza</p>
+    <h1>Bear Witness<span class="arabic">اشهد</span></h1>
+    <p class="tag">Say their names. Do your part. Stand on the right side of the day you will be asked.</p>
+    <div class="siege-counter">
+      <span class="siege-days" id="siegeDays">0</span>
+      <span class="siege-label">days of siege</span>
+    </div>
+    <a href="#children" class="btn">See who you are giving for</a>
+    <span class="scroll-hint">Scroll</span>
+  </header>
+
+  <!-- CHILDREN ROTATOR -->
+  <section id="children">
+    <div class="wrap">
+      <p class="label">Name by Name</p>
+      <h2 class="section-title">They were not numbers.</h2>
+      <p class="section-sub">Every name here is documented and verified. No detail has been invented. Read them. Remember them.</p>
+
+      <div class="rotator" id="rotator"></div>
+
+      <div class="rotator-controls" id="dots"></div>
+    </div>
+  </section>
+
+  <!-- INTRO -->
+  <section class="intro" id="intro">
+    <div class="wrap intro-body">
+      <p class="label" style="text-align:left">Why this exists</p>
+      <p class="lead">My name is Noor. I'm 18 years old, from the UK.</p>
+      <p>Not long ago, I knew about Palestine the way most people do. Enough to have an opinion, not enough to truly understand. Then I started digging. And what I found, I cannot unsee.</p>
+      <p>This did not begin in October 2023. What is happening in Gaza today is the continuation of something that has never stopped.</p>
+      <p>The word genocide is not used lightly here. It is used because it is accurate. <strong>Amnesty International, Human Rights Watch, the UN Independent International Commission of Inquiry, and the International Association of Genocide Scholars</strong> have all concluded that Israel is committing genocide against Palestinians in Gaza. The International Criminal Court has issued arrest warrants for Israeli Prime Minister Netanyahu and former Defence Minister Gallant for war crimes including using starvation as a weapon of warfare. And through all of it, the UK and the United States have continued to fund it, arm it, and shield it from accountability. Not in secret. Openly.</p>
+      <p>Before I understood any of this, I did not know the difference between Judaism and Zionism. They are not the same thing and must never be confused. <strong>Jewish people are not responsible for this.</strong> Zionism is a political ideology built on the belief in the right to take, to displace, and to destroy in the name of ethnic and religious superiority. To hold Jewish people accountable for the actions of the Israeli state is wrong. To hold the Israeli state accountable for what it is doing is not only right, it is required.</p>
+      <p>I have seen a six-year-old girl, Hind Rajab, bleed out alone in the back seat of a car, on the phone with emergency services for three hours, begging someone to come. The paramedics sent to rescue her were killed. Her body was found twelve days later. This is verified. This is documented. This happened. She is one of over 21,000 children killed.</p>
+      <p>You do not have to be Muslim to care about this. You do not have to be Arab. You just have to be human.</p>
+      <p>But for those of us who carry a faith, the Prophet Muhammad ﷺ said:</p>
+      <blockquote class="hadith">
+        Whosoever of you sees an evil, let him change it with his hand; and if he is not able to, then with his tongue; and if he is not able to, then with his heart, and that is the weakest of faith.
+        <cite>Sahih Muslim</cite>
+      </blockquote>
+      <p>Donating is the hand. Sharing is the tongue. Feeling it and doing nothing, the Prophet ﷺ called that the weakest of faith. On the Day of Judgement we will stand alone. No friend beside us. No family to speak for us. Just what we did, and what we chose not to do, when we knew.</p>
+      <p class="closing-lines">Bear witness. Donate. Share. Say their names.</p>
+      <p class="signature">Noor El-Sharawy, 18, United Kingdom</p>
+    </div>
+  </section>
+
+  <!-- CALCULATOR -->
+  <section id="give">
+    <div class="wrap">
+      <p class="label">What your giving does</p>
+      <h2 class="section-title">Every pound reaches Gaza.</h2>
+      <p class="section-sub">Through Human Appeal UK and their 100% donation policy. Food parcels and hot meals are matched by their partner, doubling them.</p>
+
+      <div class="calc">
+        <div class="calc-amount" id="amount">£25</div>
+        <div class="calc-doubled" id="doubled"></div>
+        <input type="range" id="slider" min="1" max="500" value="25">
+        <div class="presets" id="presets"></div>
+        <div id="impacts"></div>
+        <a href="https://www.launchgood.com/v4/campaign/every_meal_doubled_feed_gazas_children_this_month" target="_blank" rel="noopener" class="btn" id="donateBtn">Donate £25 on LaunchGood</a>
+        <p class="fine">Zakat applicable · Gift Aid eligible · 100% donation policy</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIMELINE -->
+  <section id="timeline">
+    <div class="wrap">
+      <p class="label">The Record</p>
+      <h2 class="section-title">It is all documented.</h2>
+      <p class="section-sub">This is not opinion. Each entry below is sourced from primary records and recognised institutions.</p>
+
+      <div class="timeline" id="tl"></div>
+    </div>
+  </section>
+
+  <!-- DONOR WALL -->
+  <section class="donors" id="donors">
+    <div class="wrap">
+      <p class="label">Those Who Gave</p>
+      <h2 class="section-title">Every name here donated.</h2>
+      <p class="section-sub">These are real people who chose to act. Add your name to this wall by donating through LaunchGood.</p>
+
+      <div class="donor-grid" id="donorGrid"></div>
+
+      <div class="donor-total" id="donorTotal"></div>
+
+      <div style="text-align:center; margin-top:24px;">
+        <a href="https://www.launchgood.com/v4/campaign/every_meal_doubled_feed_gazas_children_this_month" target="_blank" rel="noopener" class="btn">Donate and add your name</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEATH COUNTER -->
+  <section class="deaths" id="toll">
+    <div class="death-wrap">
+      <p class="death-label-top">Documented deaths since 7 October 2023</p>
+      <div class="death-number">73,770<span>+</span></div>
+      <p class="death-sub">Palestinians killed. The true figure is believed to be significantly higher. Thousands remain under the rubble, unidentified and uncounted.</p>
+      <p class="death-source">Source: Gaza Health Ministry, as reported by UNRWA and OCHA · Last updated June 2026 · Independent researchers estimate the real toll exceeds this figure</p>
+    </div>
+  </section>
+
+  <!-- WITNESS WALL -->
+  <section class="wall" id="witness">
+    <div class="wrap">
+      <p class="label">The Witness Wall</p>
+      <h2 class="section-title">Add your name to those who did not look away.</h2>
+      <p class="section-sub">Leave your name, or stay anonymous. Bearing witness is itself an act.</p>
+
+      <div class="wform">
+        <div class="field">
+          <label for="wname">Your name</label>
+          <input type="text" id="wname" placeholder="e.g. Ahmed, London" maxlength="40">
+        </div>
+        <div class="field anon-row">
+          <input type="checkbox" id="wanon">
+          <label for="wanon">Post anonymously</label>
+        </div>
+        <div class="field">
+          <label for="wchild">I bear witness for</label>
+          <select id="wchild"></select>
+        </div>
+        <div class="field">
+          <label for="wmsg">A short message (optional)</label>
+          <textarea id="wmsg" rows="2" maxlength="160" placeholder="Optional"></textarea>
+        </div>
+        <button class="btn" id="wsubmit">Add to the wall</button>
+      </div>
+
+      <div class="wall-grid" id="wallGrid">
+        <p class="wall-empty">Be the first to bear witness.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="final">
+    <div class="wrap">
+      <p class="quote">"Whoever saves one life, it is as if he has saved all of mankind."<br><span style="font-size:0.65em; color:var(--gold); font-style:normal;">Qur'an 5:32</span></p>
+      <div class="cta-row">
+        <a href="https://www.launchgood.com/v4/campaign/every_meal_doubled_feed_gazas_children_this_month" target="_blank" rel="noopener" class="btn">Donate Now</a>
+        <button class="btn btn-ghost" id="shareBtn">Share this site</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>All donations go directly to Human Appeal UK via LaunchGood. Human Appeal is a registered UK charity (No. 1154288) operating a 100% donation policy for its Gaza appeals. This is an independent personal fundraiser.</p>
+  </footer>
+
+<script>
+  var LAUNCHGOOD = "https://www.launchgood.com/v4/campaign/every_meal_doubled_feed_gazas_children_this_month";
+
+  // ---- SIEGE COUNTER ----
+  (function() {
+    var start = new Date('2023-10-07T00:00:00Z');
+    var now = new Date();
+    var days = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+    document.getElementById('siegeDays').textContent = days.toLocaleString();
+  })();
+
+  // ---- CHILDREN DATA (all verified) ----
+  var children = [
+    {
+      name: "Hind Rajab", arabic: "هند", age: "Age 5", colour: "#7B9E89",
+      fact: "She stayed on the phone with rescuers for three hours after her family was killed in their car, asking someone to come. Her body was found twelve days later.",
+      source: "Source: Al Jazeera Sanad investigation, Palestine Red Crescent Society", alive: false
+    },
+    {
+      name: "Hanan & Misk Duqqi", arabic: "حنان ومسك", age: "Ages 4 and 2", colour: "#9E8B7B",
+      fact: "An airstrike killed their mother. Hanan lost both legs, Misk lost a foot. Now in Egypt, the prosthetics they need are not available to them.",
+      source: "Source: DCIP 2025 annual report, UNICEF", alive: true
+    },
+    {
+      name: "Sham Al-Shambari", arabic: "شام", age: "Age 55 days", colour: "#8B8FA3",
+      fact: "She died when freezing temperatures overwhelmed her malnourished body, after her family's home was destroyed and they were forced into a tent in winter.",
+      source: "Source: DCIP 2025 annual report", alive: false
+    },
+    {
+      name: "Adam Shbair", arabic: "آدم", age: "Age 40 days", colour: "#A39B8B",
+      fact: "He nearly died of hypothermia after repeated forced displacements left his family in an unheated tent. He is still alive. His survival depends on aid reaching him.",
+      source: "Source: DCIP 2025 annual report", alive: true
+    },
+    {
+      name: "Layan Hamadeh", arabic: "ليان", age: "Age 15", colour: "#7B8E9E",
+      fact: "She was in the car with her younger cousin Hind. She called rescuers: the tank is right next to us. She was killed while still on the line, trying to get help for Hind.",
+      source: "Source: Palestine Red Crescent Society, Al Jazeera", alive: false
+    }
+  ];
+
+  var rotator = document.getElementById('rotator');
+  var dotsWrap = document.getElementById('dots');
+  children.forEach(function(c, i) {
+    var card = document.createElement('div');
+    card.className = 'child-card' + (i === 0 ? ' active' : '');
+    card.innerHTML =
+      '<div class="child-portrait" style="background:' + c.colour + '22;">' +
+        '<span class="pulse"></span>' +
+        '<span class="ar" style="color:' + c.colour + ';">' + c.arabic + '</span>' +
+      '</div>' +
+      '<div class="child-name">' + c.name + '</div>' +
+      '<div class="child-age">' + c.age + '</div>' +
+      (c.alive ? '<div class="child-alive">Still alive, your aid matters now</div>' : '') +
+      '<p class="child-fact">' + c.fact + '</p>' +
+      '<p class="child-source">' + c.source + '</p>' +
+      '<a href="' + LAUNCHGOOD + '" target="_blank" rel="noopener" class="btn">Donate in ' + c.name.split(' ')[0] + '\u2019s name</a>';
+    rotator.appendChild(card);
+
+    var dot = document.createElement('button');
+    dot.className = 'dot' + (i === 0 ? ' active' : '');
+    dot.setAttribute('aria-label', 'Show ' + c.name);
+    dot.addEventListener('click', function() { show(i); });
+    dotsWrap.appendChild(dot);
+  });
+
+  var cards = rotator.querySelectorAll('.child-card');
+  var dots = dotsWrap.querySelectorAll('.dot');
+  var current = 0, timer;
+  function show(i) {
+    cards[current].classList.remove('active');
+    dots[current].classList.remove('active');
+    current = i;
+    cards[current].classList.add('active');
+    dots[current].classList.add('active');
+    resetTimer();
+  }
+  function next() { show((current + 1) % children.length); }
+  function resetTimer() { clearInterval(timer); timer = setInterval(next, 6000); }
+  resetTimer();
+
+  // ---- CALCULATOR ----
+  var slider = document.getElementById('slider');
+  var amountEl = document.getElementById('amount');
+  var doubledEl = document.getElementById('doubled');
+  var impactsEl = document.getElementById('impacts');
+  var donateBtn = document.getElementById('donateBtn');
+  var presetsWrap = document.getElementById('presets');
+  var presetVals = [5, 10, 35, 96, 140, 500];
+
+  presetVals.forEach(function(v) {
+    var b = document.createElement('button');
+    b.className = 'preset';
+    b.textContent = '£' + v;
+    b.addEventListener('click', function() { slider.value = v; render(); });
+    presetsWrap.appendChild(b);
+  });
+
+  function impactsFor(amt) {
+    var out = [];
+    if (amt >= 140) { var f = Math.floor(amt/140); out.push(['📦', f + ' month' + (f > 1 ? 's' : '') + ' of food parcels for a family, doubled to ' + (f*2) + ' through matching']); }
+    if (amt >= 96) out.push(['💧', 'Clean drinking water for 20 people for a full month']);
+    if (amt >= 35) { var m2 = Math.floor(amt/35)*7; out.push(['🍲', m2 + ' hot meals, doubled to ' + (m2*2) + ' through matching']); }
+    else if (amt >= 10) { var m = Math.floor(amt/10)*2; out.push(['🍲', m + ' hot meals, doubled from ' + (m/2) + ' through matching']); }
+    else if (amt >= 5) out.push(['🍲', '2 hot meals, doubled to 4 through matching']);
+    if (out.length === 0) out.push(['🤲', 'Every pound reaches a family who needs it']);
+    return out;
+  }
+
+  function render() {
+    var amt = parseInt(slider.value, 10);
+    amountEl.textContent = '£' + amt;
+    slider.style.background = 'linear-gradient(to right, var(--gold) ' + (amt/500*100) + '%, var(--border) ' + (amt/500*100) + '%)';
+    donateBtn.textContent = 'Donate £' + amt + ' on LaunchGood';
+    // doubled note only relevant to food/meals
+    if (amt >= 5) doubledEl.textContent = 'Food and meals within this are matched and doubled';
+    else doubledEl.textContent = '';
+    var items = impactsFor(amt);
+    impactsEl.innerHTML = items.map(function(it) {
+      return '<div class="impact-line"><span class="em">' + it[0] + '</span><span>' + it[1] + '</span></div>';
+    }).join('');
+    Array.prototype.forEach.call(presetsWrap.children, function(b, idx) {
+      b.classList.toggle('active', presetVals[idx] === amt);
+    });
+  }
+  slider.addEventListener('input', render);
+  render();
+
+  // ---- TIMELINE ----
+  var timeline = [
+    ['29 November 1947', 'The UN proposes partitioning Palestine into Arab and Jewish states. It is rejected by the Arab population already living on the land.', 'UN Resolution 181', 'https://www.un.org/unispal/document/auto-insert-178764/'],
+    ['14 May 1948', 'Israel declares independence. Over 700,000 Palestinians are expelled or forced to flee their homes. They call it the Nakba, the Catastrophe.', 'UN UNISPAL', 'https://www.un.org/unispal/'],
+    ['October 2023', 'Israel launches a full military campaign on Gaza. The bombardment and siege that follow become the deadliest period for Palestinians in modern history.', 'Al Jazeera', 'https://www.aljazeera.com/news/2023/10/9/whats-the-historical-context-behind-the-israel-palestine-conflict'],
+    ['January 2024', 'The International Court of Justice orders Israel to take all measures to prevent acts of genocide in Gaza. The orders are not complied with.', 'International Court of Justice', 'https://www.icj-cij.org/case/192'],
+    ['November 2024', 'The International Criminal Court issues arrest warrants for Netanyahu and Gallant for war crimes, including starvation as a method of warfare.', 'International Criminal Court', 'https://www.icc-cpi.int/news/situation-state-palestine-icc-pre-trial-chamber-i-rejects-applications-leave-appeal-filed'],
+    ['December 2024', 'Amnesty International and Human Rights Watch each independently conclude that Israel is committing genocide against Palestinians in Gaza.', 'Amnesty International', 'https://www.amnesty.org/en/latest/news/2024/12/amnesty-international-concludes-israel-is-committing-genocide-against-palestinians-in-gaza/'],
+    ['September 2025', 'The UN Independent International Commission of Inquiry formally concludes that genocide is being committed in Gaza.', 'UN OHCHR', 'https://www.ohchr.org/en/press-releases/2025/09/un-commission-inquiry-finds-genocide-committed-gaza'],
+    ['Today', 'Over 21,000 children have been killed. Tens of thousands more are injured, orphaned, starving, or displaced. It has not stopped. Your help is needed now.', 'UNICEF, February 2026', 'https://www.unicef.org/press-releases/gaza-humanitarian-situation-report']
+  ];
+  var tl = document.getElementById('tl');
+  tl.innerHTML = timeline.map(function(t) {
+    return '<div class="tl-item"><div class="tl-date">' + t[0] + '</div><div class="tl-text">' + t[1] + '</div><div class="tl-source"><a href="' + t[3] + '" target="_blank" rel="noopener" style="color:var(--faint);text-decoration:underline;text-underline-offset:3px;">Source: ' + t[2] + ' ↗</a></div></div>';
+  }).join('');
+
+  // ---- DONOR WALL ----
+  // UPDATE THIS LIST when new donations appear on your LaunchGood page
+  // Format: { name: "Name", location: "City" }
+  // For anonymous donors use: { name: "Anonymous", location: "" }
+  var donors = [
+    // Add donors here as they come in, newest at the top
+    // Format: { name: "Name", location: "City", amount: 00, doubled: true/false }
+    { name: "Anonymous", location: "", amount: 35, doubled: true },
+    { name: "Anonymous", location: "", amount: 10, doubled: true },
+    { name: "Anonymous", location: "", amount: 10, doubled: true },
+    { name: "Anonymous", location: "", amount: 20, doubled: true },
+  ];
+
+  var donorGrid = document.getElementById('donorGrid');
+  var donorTotal = document.getElementById('donorTotal');
+
+  function initials(name) {
+    if (name === 'Anonymous') return '?';
+    var parts = name.replace(/[^a-zA-Z\s]/g, '').trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return parts[0] ? parts[0][0].toUpperCase() : '?';
+  }
+
+  function renderDonors() {
+    if (donors.length === 0) {
+      donorGrid.innerHTML = '<p style="color:var(--faint);font-style:italic;grid-column:1/-1;text-align:center;padding:20px;">Be the first to donate and appear here.</p>';
+      donorTotal.innerHTML = 'Waiting for the first donation. <a href="' + LAUNCHGOOD + '" target="_blank" rel="noopener" style="color:var(--gold);">Be the first.</a>';
+      return;
+    }
+    var total = donors.reduce(function(s, d) { return s + d.amount; }, 0);
+    donorGrid.innerHTML = donors.map(function(d) {
+      var amtLine = '\xA3' + d.amount;
+      if (d.doubled) amtLine += ' <span style="color:var(--gold);font-size:11px;">(\xA3' + (d.amount * 2) + ' with matching)</span>';
+      return '<div class="donor-card">' +
+        '<div class="donor-avatar">' + initials(d.name) + '</div>' +
+        '<div class="donor-info">' +
+          '<div class="donor-name">' + escapeHtml(d.name) + '</div>' +
+          '<div class="donor-loc">' + amtLine + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    var doubledTotal = donors.reduce(function(s, d) { return s + (d.doubled ? d.amount * 2 : d.amount); }, 0);
+    donorTotal.innerHTML = '<strong>' + donors.length + '</strong> ' + (donors.length === 1 ? 'person has' : 'people have') + ' donated <strong style="color:var(--gold);">\xA3' + total + '</strong> so far. With matching that is <strong style="color:var(--gold);">\xA3' + doubledTotal + '</strong> in real impact reaching Gaza.';
+  }
+  renderDonors();
+
+  // ---- WITNESS WALL (connected to Cloudflare D1) ----
+  var API = 'https://bearwitness-api.noorhussain2807.workers.dev';
+  var wchild = document.getElementById('wchild');
+  children.forEach(function(c) {
+    var o = document.createElement('option');
+    o.value = c.name; o.textContent = c.name;
+    wchild.appendChild(o);
+  });
+  var optAll = document.createElement('option');
+  optAll.value = 'all the children of Gaza'; optAll.textContent = 'All the children of Gaza';
+  wchild.appendChild(optAll);
+
+  var wallGrid = document.getElementById('wallGrid');
+  var wname = document.getElementById('wname');
+  var wanon = document.getElementById('wanon');
+  var wmsg = document.getElementById('wmsg');
+
+  function loadWitnesses() {
+    wallGrid.innerHTML = '<p class="wall-empty">Loading...</p>';
+    fetch(API + '/witnesses')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!data || data.length === 0) {
+          wallGrid.innerHTML = '<p class="wall-empty">Be the first to bear witness.</p>';
+          return;
+        }
+        wallGrid.innerHTML = data.map(function(w) {
+          return '<div class="witness">' +
+            '<div class="w-head">' + escapeHtml(w.name) + '</div>' +
+            '<div class="w-for">bearing witness for ' + escapeHtml(w.for_child) + '</div>' +
+            (w.message ? '<div class="w-msg">' + escapeHtml(w.message) + '</div>' : '') +
+          '</div>';
+        }).join('');
+      })
+      .catch(function() {
+        wallGrid.innerHTML = '<p class="wall-empty">Could not load entries. Please try again.</p>';
+      });
+  }
+  loadWitnesses();
+
+  document.getElementById('wsubmit').addEventListener('click', function() {
+    var name = wanon.checked ? 'Anonymous' : (wname.value.trim() || 'Anonymous');
+    var forChild = wchild.value;
+    var msg = wmsg.value.trim();
+    var btn = document.getElementById('wsubmit');
+    btn.textContent = 'Adding...';
+    btn.disabled = true;
+    fetch(API + '/witnesses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name, for_child: forChild, message: msg })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function() {
+      wname.value = ''; wmsg.value = ''; wanon.checked = false;
+      btn.textContent = 'Added to the wall';
+      setTimeout(function() { btn.textContent = 'Add to the wall'; btn.disabled = false; }, 2000);
+      loadWitnesses();
+    })
+    .catch(function() {
+      btn.textContent = 'Add to the wall';
+      btn.disabled = false;
+    });
+  });
+
+  // ---- SWIPE GESTURES ON ROTATOR ----
+  var rotatorEl = document.getElementById('rotator');
+  var swipeStartX = 0;
+  rotatorEl.addEventListener('touchstart', function(e) {
+    swipeStartX = e.touches[0].clientX;
+  }, { passive: true });
+  rotatorEl.addEventListener('touchend', function(e) {
+    var diff = swipeStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) { next(); } else { show((current - 1 + children.length) % children.length); }
+    }
+  }, { passive: true });
+
+  // ---- SCROLL PROGRESS BAR + BACK TO TOP ----
+  var progressBar = document.getElementById('progressBar');
+  var backTop = document.getElementById('backTop');
+  window.addEventListener('scroll', function() {
+    var scrollTop = window.scrollY;
+    var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    var pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    progressBar.style.width = pct + '%';
+    if (scrollTop > 400) { backTop.classList.add('visible'); }
+    else { backTop.classList.remove('visible'); }
+  }, { passive: true });
+  backTop.addEventListener('click', function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, function(m) {
+      return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m];
+    });
+  }
+
+  // ---- NAVIGATION ----
+  var navTrigger = document.getElementById('navTrigger');
+  var navPanel = document.getElementById('navPanel');
+  var navOverlay = document.getElementById('navOverlay');
+  var navClose = document.getElementById('navClose');
+
+  function openNav() {
+    navPanel.classList.add('open');
+    navOverlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeNav() {
+    navPanel.classList.remove('open');
+    navOverlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  function navTo(id) {
+    closeNav();
+    setTimeout(function() {
+      var el = document.getElementById(id);
+      if (el) {
+        var offset = el.getBoundingClientRect().top + window.scrollY - 70;
+        window.scrollTo({ top: offset, behavior: 'smooth' });
+      }
+    }, 300);
+  }
+
+  navTrigger.addEventListener('click', openNav);
+  navClose.addEventListener('click', closeNav);
+  navOverlay.addEventListener('click', closeNav);
+
+
+  document.getElementById('shareBtn').addEventListener('click', function() {
+    var shareData = {
+      title: 'Bear Witness',
+      text: 'Bear witness to what is happening in Gaza. Donate, share, and say their names.',
+      url: window.location.href
+    };
+    if (navigator.share) { navigator.share(shareData).catch(function(){}); }
+    else {
+      navigator.clipboard.writeText(shareData.text + ' ' + shareData.url);
+      var b = document.getElementById('shareBtn');
+      var t = b.textContent; b.textContent = 'Link copied';
+      setTimeout(function(){ b.textContent = t; }, 2000);
+    }
+  });
+</script>
+</body>
+</html>

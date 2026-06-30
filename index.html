@@ -40,6 +40,43 @@
 
   .wrap { max-width: 680px; margin: 0 auto; padding: 0 24px; }
 
+  /* PROGRESS BAR */
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 2px;
+    background: var(--gold);
+    z-index: 200;
+    width: 0%;
+    transition: width 0.1s linear;
+  }
+
+  /* BACK TO TOP */
+  .back-top {
+    position: fixed;
+    bottom: 28px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: var(--bg-deep);
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    font-family: var(--body);
+  }
+  .back-top.visible { opacity: 1; pointer-events: auto; }
+  .back-top:hover { transform: translateY(-2px); }
+
   /* NAVIGATION */
   .nav-bar {
     position: fixed;
@@ -685,6 +722,12 @@
 </head>
 <body>
 
+  <!-- PROGRESS BAR -->
+  <div class="progress-bar" id="progressBar"></div>
+
+  <!-- BACK TO TOP -->
+  <button class="back-top" id="backTop" aria-label="Back to top">↑</button>
+
   <!-- NAVIGATION -->
   <nav class="nav-bar">
     <a href="#hero" class="nav-brand">Bear Witness</a>
@@ -991,18 +1034,18 @@
 
   // ---- TIMELINE ----
   var timeline = [
-    ['29 November 1947', 'The UN proposes partitioning Palestine into Arab and Jewish states. It is rejected by the Arab population already living on the land.', 'Source: UN Resolution 181'],
-    ['14 May 1948', 'Israel declares independence. Over 700,000 Palestinians are expelled or forced to flee their homes. They call it the Nakba, the Catastrophe.', 'Source: UN UNISPAL'],
-    ['October 2023', 'Israel launches a full military campaign on Gaza. The bombardment and siege that follow become the deadliest period for Palestinians in modern history.', 'Source: Al Jazeera'],
-    ['January 2024', 'The International Court of Justice orders Israel to take all measures to prevent acts of genocide in Gaza. The orders are not complied with.', 'Source: International Court of Justice'],
-    ['November 2024', 'The International Criminal Court issues arrest warrants for Netanyahu and Gallant for war crimes, including starvation as a method of warfare.', 'Source: International Criminal Court'],
-    ['December 2024', 'Amnesty International and Human Rights Watch each independently conclude that Israel is committing genocide against Palestinians in Gaza.', 'Source: Amnesty International, Human Rights Watch'],
-    ['September 2025', 'The UN Independent International Commission of Inquiry formally concludes that genocide is being committed in Gaza.', 'Source: UN OHCHR'],
-    ['Today', 'Over 21,000 children have been killed. Tens of thousands more are injured, orphaned, starving, or displaced. It has not stopped. Your help is needed now.', 'Source: UNICEF Humanitarian Situation Update, February 2026']
+    ['29 November 1947', 'The UN proposes partitioning Palestine into Arab and Jewish states. It is rejected by the Arab population already living on the land.', 'UN Resolution 181', 'https://www.un.org/unispal/document/auto-insert-178764/'],
+    ['14 May 1948', 'Israel declares independence. Over 700,000 Palestinians are expelled or forced to flee their homes. They call it the Nakba, the Catastrophe.', 'UN UNISPAL', 'https://www.un.org/unispal/'],
+    ['October 2023', 'Israel launches a full military campaign on Gaza. The bombardment and siege that follow become the deadliest period for Palestinians in modern history.', 'Al Jazeera', 'https://www.aljazeera.com/news/2023/10/9/whats-the-historical-context-behind-the-israel-palestine-conflict'],
+    ['January 2024', 'The International Court of Justice orders Israel to take all measures to prevent acts of genocide in Gaza. The orders are not complied with.', 'International Court of Justice', 'https://www.icj-cij.org/case/192'],
+    ['November 2024', 'The International Criminal Court issues arrest warrants for Netanyahu and Gallant for war crimes, including starvation as a method of warfare.', 'International Criminal Court', 'https://www.icc-cpi.int/news/situation-state-palestine-icc-pre-trial-chamber-i-rejects-applications-leave-appeal-filed'],
+    ['December 2024', 'Amnesty International and Human Rights Watch each independently conclude that Israel is committing genocide against Palestinians in Gaza.', 'Amnesty International', 'https://www.amnesty.org/en/latest/news/2024/12/amnesty-international-concludes-israel-is-committing-genocide-against-palestinians-in-gaza/'],
+    ['September 2025', 'The UN Independent International Commission of Inquiry formally concludes that genocide is being committed in Gaza.', 'UN OHCHR', 'https://www.ohchr.org/en/press-releases/2025/09/un-commission-inquiry-finds-genocide-committed-gaza'],
+    ['Today', 'Over 21,000 children have been killed. Tens of thousands more are injured, orphaned, starving, or displaced. It has not stopped. Your help is needed now.', 'UNICEF, February 2026', 'https://www.unicef.org/press-releases/gaza-humanitarian-situation-report']
   ];
   var tl = document.getElementById('tl');
   tl.innerHTML = timeline.map(function(t) {
-    return '<div class="tl-item"><div class="tl-date">' + t[0] + '</div><div class="tl-text">' + t[1] + '</div><div class="tl-source">' + t[2] + '</div></div>';
+    return '<div class="tl-item"><div class="tl-date">' + t[0] + '</div><div class="tl-text">' + t[1] + '</div><div class="tl-source"><a href="' + t[3] + '" target="_blank" rel="noopener" style="color:var(--faint);text-decoration:underline;text-underline-offset:3px;">Source: ' + t[2] + ' ↗</a></div></div>';
   }).join('');
 
   // ---- DONOR WALL ----
@@ -1051,7 +1094,8 @@
   }
   renderDonors();
 
-  // ---- WITNESS WALL ----
+  // ---- WITNESS WALL (connected to Cloudflare D1) ----
+  var API = 'https://bearwitness-api.noorhussain2807.workers.dev';
   var wchild = document.getElementById('wchild');
   children.forEach(function(c) {
     var o = document.createElement('option');
@@ -1062,34 +1106,88 @@
   optAll.value = 'all the children of Gaza'; optAll.textContent = 'All the children of Gaza';
   wchild.appendChild(optAll);
 
-  var witnesses = [];
   var wallGrid = document.getElementById('wallGrid');
   var wname = document.getElementById('wname');
   var wanon = document.getElementById('wanon');
   var wmsg = document.getElementById('wmsg');
 
+  function loadWitnesses() {
+    wallGrid.innerHTML = '<p class="wall-empty">Loading...</p>';
+    fetch(API + '/witnesses')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!data || data.length === 0) {
+          wallGrid.innerHTML = '<p class="wall-empty">Be the first to bear witness.</p>';
+          return;
+        }
+        wallGrid.innerHTML = data.map(function(w) {
+          return '<div class="witness">' +
+            '<div class="w-head">' + escapeHtml(w.name) + '</div>' +
+            '<div class="w-for">bearing witness for ' + escapeHtml(w.for_child) + '</div>' +
+            (w.message ? '<div class="w-msg">' + escapeHtml(w.message) + '</div>' : '') +
+          '</div>';
+        }).join('');
+      })
+      .catch(function() {
+        wallGrid.innerHTML = '<p class="wall-empty">Could not load entries. Please try again.</p>';
+      });
+  }
+  loadWitnesses();
+
   document.getElementById('wsubmit').addEventListener('click', function() {
     var name = wanon.checked ? 'Anonymous' : (wname.value.trim() || 'Anonymous');
     var forChild = wchild.value;
     var msg = wmsg.value.trim();
-    witnesses.unshift({ name: name, forChild: forChild, msg: msg });
-    renderWall();
-    wname.value = ''; wmsg.value = ''; wanon.checked = false;
+    var btn = document.getElementById('wsubmit');
+    btn.textContent = 'Adding...';
+    btn.disabled = true;
+    fetch(API + '/witnesses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name, for_child: forChild, message: msg })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function() {
+      wname.value = ''; wmsg.value = ''; wanon.checked = false;
+      btn.textContent = 'Added to the wall';
+      setTimeout(function() { btn.textContent = 'Add to the wall'; btn.disabled = false; }, 2000);
+      loadWitnesses();
+    })
+    .catch(function() {
+      btn.textContent = 'Add to the wall';
+      btn.disabled = false;
+    });
   });
 
-  function renderWall() {
-    if (witnesses.length === 0) {
-      wallGrid.innerHTML = '<p class="wall-empty">Be the first to bear witness.</p>';
-      return;
+  // ---- SWIPE GESTURES ON ROTATOR ----
+  var rotatorEl = document.getElementById('rotator');
+  var swipeStartX = 0;
+  rotatorEl.addEventListener('touchstart', function(e) {
+    swipeStartX = e.touches[0].clientX;
+  }, { passive: true });
+  rotatorEl.addEventListener('touchend', function(e) {
+    var diff = swipeStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) { next(); } else { show((current - 1 + children.length) % children.length); }
     }
-    wallGrid.innerHTML = witnesses.map(function(w) {
-      return '<div class="witness">' +
-        '<div class="w-head">' + escapeHtml(w.name) + '</div>' +
-        '<div class="w-for">bearing witness for ' + escapeHtml(w.forChild) + '</div>' +
-        (w.msg ? '<div class="w-msg">' + escapeHtml(w.msg) + '</div>' : '') +
-      '</div>';
-    }).join('');
-  }
+  }, { passive: true });
+
+  // ---- SCROLL PROGRESS BAR + BACK TO TOP ----
+  var progressBar = document.getElementById('progressBar');
+  var backTop = document.getElementById('backTop');
+  window.addEventListener('scroll', function() {
+    var scrollTop = window.scrollY;
+    var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    var pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    progressBar.style.width = pct + '%';
+    if (scrollTop > 400) { backTop.classList.add('visible'); }
+    else { backTop.classList.remove('visible'); }
+  }, { passive: true });
+  backTop.addEventListener('click', function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+
   function escapeHtml(s) {
     return s.replace(/[&<>"']/g, function(m) {
       return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m];
